@@ -49,8 +49,11 @@ if filetype_list == [0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa]:
         if lineData_list[i][0] == 0:
             continue
         elif lineData_list[i][0] == 1:
-            for j in range(4, (3 * png_width + 1)):
-                lineData_list[i][j] += lineData_list[i][j - 3]
+            for j in range(1, (3 * png_width + 1)):
+                if j < 4:
+                    lineData_list[i][j] += 0
+                else:
+                    lineData_list[i][j] += lineData_list[i][j - 3]
                 lineData_list[i][j] %= 256
 
         elif lineData_list[i][0] == 2:
@@ -59,15 +62,22 @@ if filetype_list == [0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa]:
                 lineData_list[i][j] %= 256
 
         elif lineData_list[i][0] == 3:
-            for j in range(4, (3 * png_width + 1)):
-                lineData_list[i][j] += (lineData_list[i][j - 3] + lineData_list[i - 1][j]) // 2
+            for j in range(1, (3 * png_width + 1)):
+                if j < 4:
+                    lineData_list[i][j] += lineData_list[i - 1][j]//2
+                else:
+                    lineData_list[i][j] += (lineData_list[i][j - 3] + lineData_list[i - 1][j]) // 2
                 lineData_list[i][j] %= 256
 
         else:
-            for j in range(4, (3 * png_width + 1)):
-                a = lineData_list[i][j - 3]
+            for j in range(1, (3 * png_width + 1)):
+                if j < 4:
+                    a,c = 0,0
+                else:
+                    a = lineData_list[i][j - 3]
+                    c = lineData_list[i - 1][j - 3]
                 b = lineData_list[i - 1][j]
-                c = lineData_list[i - 1][j - 3]
+
                 p = a + b - c
                 min_abs = min(abs(a - p), abs(b - p), abs(c - p))
                 if min_abs == abs(a - p):
@@ -80,11 +90,12 @@ if filetype_list == [0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa]:
         r_list[i] = lineData_list[i][1::3]
         g_list[i] = lineData_list[i][2::3]
         b_list[i] = lineData_list[i][3::3]
+
     while 1:
         i = int(input("please enter x:"))
         j = int(input("please enter y:"))
         if j < png_width and i < png_hight:
-            print("r:%d g:%d b:%d" % (r_list[i][j], g_list[i][j], b_list[i][j]))
+            print("r:%d g:%d b:%d" % (r_list[i][j]*257, g_list[i][j]*257, b_list[i][j]*257))
         else:
             print("!!! OUT OF RANGE !!!")
 
