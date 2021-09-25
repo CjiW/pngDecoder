@@ -56,6 +56,7 @@ if filetype_list == [0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa]:
         elif lineData_list[i][0] == 2:
             for j in range(1, (3 * png_width + 1)):
                 lineData_list[i][j] += lineData_list[i - 1][j]
+                lineData_list[i][j] %= 256
 
         elif lineData_list[i][0] == 3:
             for j in range(4, (3 * png_width + 1)):
