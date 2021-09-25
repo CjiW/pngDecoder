@@ -24,4 +24,6 @@ if filetype_list == [0x89, 0x50, 0x4e, 0x47, 0xd, 0xa, 0x1a, 0xa]:
 
 else:
     print("It is not a png!")
+f.close()
+input("press <enter> to exit......")
 
