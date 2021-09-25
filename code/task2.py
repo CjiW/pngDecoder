@@ -25,4 +25,4 @@ color_type: %d,
 compression: %d, 
 filter: %d, 
 interlace: %d, """ % (width, height, bit_depth, color_type, compression, Filter, interlace))
-
+input("press <enter> to exit......")
