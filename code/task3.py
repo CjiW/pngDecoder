@@ -1,51 +1,60 @@
-import zlib
+from zlib import decompress
 
 
 def unfilter(lineData_list, png_hight, png_width):
     # 还原RGB信息
     r_list, g_list, b_list = [], [], []
     for i in range(png_hight):
-        if lineData_list[i][0] == 0:
-            continue
-        elif lineData_list[i][0] == 1:
+
+        if lineData_list[i][0] == 1:
             for j in range(1, (3 * png_width + 1)):
                 if j < 4:
                     lineData_list[i][j] += 0
                 else:
                     lineData_list[i][j] += lineData_list[i][j - 3]
-                lineData_list[i][j] %= 256
+                lineData_list[i][j] = int(lineData_list[i][j] % 256)
 
         elif lineData_list[i][0] == 2:
-            for j in range(1, (3 * png_width + 1)):
-                lineData_list[i][j] += lineData_list[i - 1][j]
-                lineData_list[i][j] %= 256
+
+            if i != 0:
+                for j in range(1, (3 * png_width + 1)):
+                    lineData_list[i][j] += lineData_list[i - 1][j]
+                    lineData_list[i][j] = int(lineData_list[i][j] % 256)
 
         elif lineData_list[i][0] == 3:
             for j in range(1, (3 * png_width + 1)):
                 if j < 4:
-                    lineData_list[i][j] += lineData_list[i - 1][j] // 2
+                    a = 0
                 else:
-                    lineData_list[i][j] += (lineData_list[i][j - 3] + lineData_list[i - 1][j]) // 2
-                lineData_list[i][j] %= 256
+                    a = lineData_list[i][j - 3]
+                if i == 0:
+                    b = 0
+                else:
+                    b = lineData_list[i - 1][j]
+                lineData_list[i][j] += (a + b) // 2
+                lineData_list[i][j] = int(lineData_list[i][j] % 256)
 
-        else:
+        elif lineData_list[i][0] == 4:
             for j in range(1, (3 * png_width + 1)):
                 if j < 4:
                     a, c = 0, 0
                 else:
                     a = lineData_list[i][j - 3]
                     c = lineData_list[i - 1][j - 3]
-                b = lineData_list[i - 1][j]
+                if i == 0:
+                    b, c = 0, 0
+                else:
+                    b = lineData_list[i - 1][j]
 
                 p = a + b - c
-                min_abs = min(abs(a - p), abs(b - p), abs(c - p))
-                if min_abs == abs(a - p):
-                    lineData_list[i][j] += a
-                elif min_abs == abs(b - p):
-                    lineData_list[i][j] += b
+                pa, pb, pc = abs(a - p), abs(b - p), abs(c - p)
+                if pa <= pb and pa <= pc:
+                    count = a
+                elif pb <= pc:
+                    count = b
                 else:
-                    lineData_list[i][j] += c
-                lineData_list[i][j] %= 256
+                    count = c
+                lineData_list[i][j] = int((lineData_list[i][j] + count) % 256)
 
         r_list.append(lineData_list[i][1::3])
         g_list.append(lineData_list[i][2::3])
@@ -81,12 +90,13 @@ if is_png:
                       "CRC": pngbytes_list[nu_bytes + 8 + length:nu_bytes + 8 + length + 4]}
         if block_data["Type"].decode() == "IDAT":
             allAata += block_data["Data"]
+
         elif block_data["Type"].decode() == "IHDR":
             png_width = change_to_sum(block_data["Data"][0:4])
             png_hight = change_to_sum(block_data["Data"][4:8])
         nu_bytes += 8 + length + 4
     # 解压
-    unzipedData = zlib.decompress(allAata)
+    unzipedData = decompress(allAata)
     lineData_list = []
     # 分行
     for n in range(png_hight):
@@ -97,6 +107,7 @@ if is_png:
     g_list = rgb_list[1]
     b_list = rgb_list[2]
 
+
     while 1:
         i = int(input("please enter x:"))
         j = int(input("please enter y:"))
@@ -105,7 +116,6 @@ if is_png:
         else:
             print("!!! OUT OF RANGE !!!")
 
+
 else:
     print("It is not a png!")
-
-f.close()
