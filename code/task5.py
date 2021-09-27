@@ -150,7 +150,7 @@ if is_png:
     for i in range(png_hight):
         for j in range(1, 3 * png_width + 1, 3):
             gray = (unfilterLine_list[i][j] + unfilterLine_list[i][j + 1] + unfilterLine_list[i][j + 2]) // 3
-            unfilterLine_list[i][j], unfilterLine_list[i][j + 1], unfilterLine_list[i][j + 2] = gray
+            unfilterLine_list[i][j], unfilterLine_list[i][j + 1], unfilterLine_list[i][j + 2] = gray, gray, gray
 
     #################################################################
     filterData = myfilter(unfilterLine_list, png_hight, png_width)
