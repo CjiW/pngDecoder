@@ -3,7 +3,6 @@ from zlib import decompress, compress
 
 def unfilter(lineData_list, png_hight, png_width):
     # 还原RGB信息
-    r_list, g_list, b_list = [], [], []
     for i in range(png_hight):
         if lineData_list[i][0] == 0:
             continue
@@ -47,11 +46,7 @@ def unfilter(lineData_list, png_hight, png_width):
                     lineData_list[i][j] += c
                 lineData_list[i][j] %= 256
 
-        r_list.append(lineData_list[i][1::3])
-        g_list.append(lineData_list[i][2::3])
-        b_list.append(lineData_list[i][3::3])
-
-    return [r_list, g_list, b_list, lineData_list]
+    return lineData_list
 
 
 def myfilter(lineData_list, png_hight, png_width):
@@ -147,25 +142,65 @@ if is_png:
     for n in range(png_hight):
         lineData_list.append(list(unzipedData[n * (3 * png_width + 1):(n + 1) * (3 * png_width + 1)]))
     # 还原
-    rgb_list = unfilter(lineData_list, png_hight, png_width)
-    r_list = rgb_list[0]
-    g_list = rgb_list[1]
-    b_list = rgb_list[2]
-    unfilterLine_list = rgb_list[3]
+    unfilterLine_list = unfilter(lineData_list, png_hight, png_width)
     #################################################################
     # 在此处修改RGB信息
-    print("1) Original image\n2) Negative image\n3) Grayscale image\nplease choose the number of function:")
+    print("1) Original image\n2) Negative image\n3) Grayscale image\n4) Draw edges\nplease choose the function_number:")
     choose_function = int(input())
 
     if choose_function == 2:
         for i in range(png_hight):
             for j in range(1, 3 * png_width + 1):
                 unfilterLine_list[i][j] = 255 - unfilterLine_list[i][j]
-    elif choose_function == 3:
+    elif choose_function == 3 or choose_function == 4:
         for i in range(png_hight):
             for j in range(1, 3 * png_width + 1, 3):
-                gray = (unfilterLine_list[i][j] + unfilterLine_list[i][j + 1] + unfilterLine_list[i][j + 2]) // 3
+                gray = int(unfilterLine_list[i][j] * 0.299 + unfilterLine_list[i][j + 1] * 0.587 + unfilterLine_list[i][
+                    j + 2] * 0.114)
+                # gray = (unfilterLine_list[i][j] + unfilterLine_list[i][j + 1] + unfilterLine_list[i][j + 2]) // 3
                 unfilterLine_list[i][j], unfilterLine_list[i][j + 1], unfilterLine_list[i][j + 2] = gray, gray, gray
+
+        if choose_function == 4:
+            # Sobel算子
+            gray_list_1 = []
+            gray_list_x = []
+            gray_list_y = []
+            gray_list_2 = []
+            for unfilterline in unfilterLine_list:
+                gray_list_1.append(unfilterline[1::3])
+                gray_list_x.append(unfilterline[1::3])
+                gray_list_2.append(unfilterline[1::3])
+                gray_list_y.append(unfilterline[1::3])
+            x1, x2, x3, y1, y2, y3, z1, z2, z3 = 0, 0, 0, 0, 0, 0, 0, 0, 0
+            boundary = int(input("界限(越小边缘越清晰，但噪点越多):"))
+            for i in range(png_hight):
+                for j in range(png_width):
+                    x1 = gray_list_1[i - 1][j - 1]
+                    x2 = gray_list_1[i - 1][j]
+                    x3 = gray_list_1[i - 1][(j + 1) % png_width]
+                    y1 = gray_list_1[i][j - 1]
+                    y2 = gray_list_1[i][j]
+                    y3 = gray_list_1[i][(j + 1) % png_width]
+                    z1 = gray_list_1[(i + 1) % png_hight][j - 1]
+                    z2 = gray_list_1[(i + 1) % png_hight][j]
+                    z3 = gray_list_1[(i + 1) % png_hight][(j + 1) % png_width]
+                    if j == 0:
+                        x1, y1, z1 = 0, 0, 0
+                    elif j == png_width - 1:
+                        x3, y3, z3 = 0, 0, 0
+                    if i == 0:
+                        x1, x2, x3 = 0, 0, 0
+                    elif i == png_hight - 1:
+                        z1, z2, z3 = 0, 0, 0
+                    gray_list_x[i][j] = -1 * x1 + 1 * x3 + -2 * y1 + 2 * y3 + -1 * z1 + 1 * z3
+                    gray_list_y[i][j] = -1 * z1 + 1 * x1 + -2 * z2 + 2 * x2 + -1 * z3 + 1 * x3
+
+                    if (gray_list_x[i][j] ** 2 + gray_list_y[i][j] ** 2) ** (1 / 2) < boundary:
+                        gray_list_2[i][j] = 255
+                    else:
+                        gray_list_2[i][j] = 0
+                    unfilterLine_list[i][3 * j + 1], unfilterLine_list[i][3 * j + 2], unfilterLine_list[i][3 * j + 3] = \
+                        gray_list_2[i][j], gray_list_2[i][j], gray_list_2[i][j]
 
     #################################################################
     filterData = myfilter(unfilterLine_list, png_hight, png_width)
