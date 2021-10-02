@@ -1,2 +1,2 @@
 # pngDecoder
-[日志](./schdule/wylog.md)
+[日志](./schedule/wylog.md)
