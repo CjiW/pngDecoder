@@ -12,3 +12,5 @@ server{
     }
 }
 ```
+> 注意转发目的地地址末尾有无 / 的问题
+> [相关](https://www.jianshu.com/p/b010c9302cd0)
