@@ -1,6 +1,0 @@
-![](./images/test1.png)
-![](./images/output1.png)
-![](./images/test2.png)
-![](./images/output2.png)
-![](./images/test3.png)
-![](./images/output3.png)
