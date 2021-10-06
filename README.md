@@ -4,4 +4,5 @@
 [程序代码](./code/)  
 
 - task6和task8需要素材character.png
+- task8需要原视频以合并音频
 
